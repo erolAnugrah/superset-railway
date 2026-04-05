@@ -2,7 +2,7 @@
 set -e
 
 # Generate superset_config.py from environment variables
-cat > /app/superset_config.py << EOF
+cat > /app/superset_config.py << 'EOF'
 import os
 
 SECRET_KEY = os.environ.get('SUPERSET_SECRET_KEY', 'default-secret-key')

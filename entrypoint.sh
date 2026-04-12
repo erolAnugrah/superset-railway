@@ -12,8 +12,5 @@ superset fab create-admin \
   --email ${ADMIN_EMAIL:-admin@example.com} \
   --password ${ADMIN_PASSWORD:-admin} || true
 
-# Load examples
-superset load_examples || true
-
-# Start Superset
+# Start Superset (skip examples to speed up startup)
 superset run -h 0.0.0.0 -p ${PORT:-8088}

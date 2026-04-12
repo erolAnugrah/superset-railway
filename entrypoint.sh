@@ -1,15 +1,19 @@
 #!/bin/bash
 set -e
 
-# Generate superset_config.py from environment variables
-cat > /app/superset_config.py << 'EOF'
-import os
+# Initialize Superset database
+superset db upgrade
 
-SECRET_KEY = os.environ.get('SUPERSET_SECRET_KEY', 'default-secret-key')
-SQLALCHEMY_DATABASE_URI = os.environ.get('SUPERSET_SQLALCHEMY_DATABASE_URI', 'sqlite:////app/superset.db')
-EOF
+# Create admin user if it doesn't exist
+superset fab create-admin \
+  --username ${ADMIN_USERNAME:-admin} \
+  --firstname Admin \
+  --lastname User \
+  --email ${ADMIN_EMAIL:-admin@example.com} \
+  --password ${ADMIN_PASSWORD:-admin} || true
 
-export SUPERSET_CONFIG_PATH=/app/superset_config.py
+# Load examples
+superset load_examples || true
 
-# Run superset
-exec superset run -p 8088 -h 0.0.0.0
+# Start Superset
+superset run -h 0.0.0.0 -p ${PORT:-8088}

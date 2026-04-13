@@ -1,7 +1,7 @@
 FROM apache/superset:latest
 
 USER root
-RUN uv pip install "psycopg[binary]"
+RUN uv pip install "psycopg[binary]" "psycopg2-binary"
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

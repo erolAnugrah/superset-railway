@@ -1,12 +1,14 @@
 #!/bin/bash
 set -e
 
-# Install psycopg2-binary into the venv if not already present.
-# The venv is created by the base image at runtime, so this must happen here
-# rather than during the Docker build.
-if ! /app/.venv/bin/python -c "import psycopg2" 2>/dev/null; then
-  echo "Installing psycopg2-binary into venv..."
-  /app/.venv/bin/pip install --quiet psycopg2-binary
+# Install psycopg2-binary to the system Python so it is available when
+# Superset starts. The venv at /app/.venv is created by the base image
+# AFTER this entrypoint begins, so we cannot install into it here.
+# Installing to the system Python ensures the package is present regardless
+# of when (or whether) the venv is created.
+if ! python -c "import psycopg2" 2>/dev/null; then
+  echo "Installing psycopg2-binary to system Python..."
+  python -m pip install --quiet psycopg2-binary
 fi
 
 # Resolve the database URI:

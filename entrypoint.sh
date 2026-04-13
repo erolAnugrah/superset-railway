@@ -8,7 +8,7 @@ set -e
 # of when (or whether) the venv is created.
 if ! python -c "import psycopg2" 2>/dev/null; then
   echo "Installing psycopg2-binary to system Python..."
-  python -m pip install --quiet psycopg2-binary
+  pip install --quiet psycopg2-binary
 fi
 
 # Resolve the database URI:

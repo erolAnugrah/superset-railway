@@ -28,3 +28,24 @@ if not _uri:
 
 if _uri:
     SQLALCHEMY_DATABASE_URI = _uri
+
+# Suppress SQLAlchemy modification-tracking overhead (not used by Superset).
+SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+# SQLite requires check_same_thread=False to work correctly with Flask's
+# threaded request model.  PostgreSQL does not accept this connect_arg, so
+# the extra option is only applied when falling back to a SQLite database.
+# Use _uri (may be None when no DB env vars are set) to avoid a NameError
+# on SQLALCHEMY_DATABASE_URI, which is only defined when _uri is truthy.
+_is_sqlite = _uri is None or _uri.startswith("sqlite")
+if _is_sqlite:
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "connect_args": {"check_same_thread": False},
+        "pool_pre_ping": True,
+        "pool_recycle": 3600,
+    }
+else:
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "pool_recycle": 3600,
+    }

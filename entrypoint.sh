@@ -3,21 +3,33 @@ set -e
 
 # Resolve the database URI:
 #   1. Use SUPERSET_SQLALCHEMY_DATABASE_URI if already set and non-empty.
-#   2. Otherwise, use the DATABASE variable that Railway provides directly
-#      (reference variables like ${{ Postgres.PGHOST }} don't resolve in the
-#      container at runtime, but DATABASE is a plain variable set to the full
-#      Postgres connection string).
+#   2. Otherwise, construct it from Railway's individual Postgres credentials
+#      (PGUSER, PGPASSWORD, PGDATABASE) using the private DNS name
+#      postgres.railway.internal. Reference variables like
+#      ${{postgres.DATABASE_URL}} don't resolve in the container at runtime,
+#      but the individual PG* variables are available on the Postgres service.
 #   3. Hard-fail if neither option is available so Superset never silently
 #      falls back to SQLite.
 if [ -n "$SUPERSET_SQLALCHEMY_DATABASE_URI" ]; then
   echo "Using SUPERSET_SQLALCHEMY_DATABASE_URI for database connection."
-elif [ -n "$DATABASE" ]; then
-  echo "SUPERSET_SQLALCHEMY_DATABASE_URI is not set; using DATABASE variable."
-  SUPERSET_SQLALCHEMY_DATABASE_URI="$DATABASE"
 else
-  echo "ERROR: Neither SUPERSET_SQLALCHEMY_DATABASE_URI nor DATABASE is set." \
-       "Please set the DATABASE variable to the Postgres connection string in Railway." >&2
-  exit 1
+  echo "SUPERSET_SQLALCHEMY_DATABASE_URI is not set; constructing from PG* variables."
+
+  if [ -z "$PGUSER" ]; then
+    echo "ERROR: PGUSER is not set. Cannot construct Postgres connection string." >&2
+    exit 1
+  fi
+  if [ -z "$PGPASSWORD" ]; then
+    echo "ERROR: PGPASSWORD is not set. Cannot construct Postgres connection string." >&2
+    exit 1
+  fi
+  if [ -z "$PGDATABASE" ]; then
+    echo "ERROR: PGDATABASE is not set. Cannot construct Postgres connection string." >&2
+    exit 1
+  fi
+
+  SUPERSET_SQLALCHEMY_DATABASE_URI="postgresql://${PGUSER}:${PGPASSWORD}@postgres.railway.internal:5432/${PGDATABASE}"
+  echo "Constructed database URI using postgres.railway.internal."
 fi
 
 export SUPERSET_SQLALCHEMY_DATABASE_URI

@@ -7,7 +7,7 @@ RUN chmod +x /entrypoint.sh
 
 COPY superset_config.py /app/superset_config.py
 
-RUN pip install psycopg2-binary
+RUN /app/.venv/bin/pip install psycopg2-binary
 
 USER superset
 

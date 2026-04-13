@@ -50,9 +50,9 @@ echo "Initializing Superset..."
 superset init
 
 echo "Starting Superset..."
-exec superset run \
+exec env SUPERSET_SQLALCHEMY_DATABASE_URI="$SUPERSET_SQLALCHEMY_DATABASE_URI" \
+  superset run \
   --host 0.0.0.0 \
   --port "${PORT:-8088}" \
   --with-threads \
-  --reload \
   --debugger

@@ -38,17 +38,16 @@ export SUPERSET_SQLALCHEMY_DATABASE_URI
 echo "Running database migrations..."
 superset db upgrade
 
-echo "Creating admin user..."
-superset fab create-admin \
-  --username "${ADMIN_USERNAME:-admin}" \
-  --firstname "${ADMIN_FIRST_NAME:-Admin}" \
-  --lastname "${ADMIN_LAST_NAME:-User}" \
-  --email "${ADMIN_EMAIL:-admin@superset.com}" \
-  --password "${ADMIN_PASSWORD:-admin}" \
-  || true  # Don't fail if the user already exists
-
 echo "Initializing Superset..."
 superset init
+
+echo "Creating admin user..."
+superset fab create-admin \
+  --username admin \
+  --firstname Admin \
+  --lastname User \
+  --email admin@example.com \
+  --password admin || echo "Admin user may already exist; continuing."
 
 echo "Starting Superset..."
 exec env SUPERSET_SQLALCHEMY_DATABASE_URI="$SUPERSET_SQLALCHEMY_DATABASE_URI" \

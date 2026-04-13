@@ -76,7 +76,9 @@ from celery.schedules import crontab
 # Railway usually provides REDIS_URL for its Redis plugins
 _redis_url = os.environ.get("REDIS_URL", "redis://redis:6379/0")
 
-RATELIMIT_STORAGE_URI = _redis_url
+# Flask-limiter (limits package) has trouble parsing "redis://default:password" sometimes, 
+# so we replace "default:" with ":" to pass only the password.
+RATELIMIT_STORAGE_URI = _redis_url.replace("redis://default:", "redis://:")
 
 CACHE_CONFIG = {
     "CACHE_TYPE": "RedisCache",

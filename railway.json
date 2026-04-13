@@ -1,0 +1,69 @@
+{
+    "name": "Apache Superset Template",
+    "description": "Deploy Apache Superset with a Web App, Celery Worker, Celery Beat, alongside Postgres and Redis services.",
+    "services": {
+        "superset-web": {
+            "name": "Superset Web App",
+            "source": {
+                "repo": "."
+            },
+            "env": {
+                "SUPERSET_ROLE": "app",
+                "SUPERSET_SECRET_KEY": {
+                    "generate": true,
+                    "length": 42
+                },
+                "REDIS_URL": "${{ redis.REDIS_URL }}",
+                "SUPERSET_SQLALCHEMY_DATABASE_URI": "${{ postgres.DATABASE_URL }}"
+            }
+        },
+        "superset-worker": {
+            "name": "Superset Celery Worker",
+            "source": {
+                "repo": "."
+            },
+            "env": {
+                "SUPERSET_ROLE": "worker",
+                "SUPERSET_SECRET_KEY": "${{ superset-web.SUPERSET_SECRET_KEY }}",
+                "REDIS_URL": "${{ redis.REDIS_URL }}",
+                "SUPERSET_SQLALCHEMY_DATABASE_URI": "${{ postgres.DATABASE_URL }}"
+            }
+        },
+        "superset-beat": {
+            "name": "Superset Celery Beat",
+            "source": {
+                "repo": "."
+            },
+            "env": {
+                "SUPERSET_ROLE": "beat",
+                "SUPERSET_SECRET_KEY": "${{ superset-web.SUPERSET_SECRET_KEY }}",
+                "REDIS_URL": "${{ redis.REDIS_URL }}",
+                "SUPERSET_SQLALCHEMY_DATABASE_URI": "${{ postgres.DATABASE_URL }}"
+            }
+        },
+        "postgres": {
+            "name": "PostgreSQL",
+            "source": {
+                "image": "postgres:16"
+            },
+            "env": {
+                "POSTGRES_USER": "postgres",
+                "POSTGRES_PASSWORD": {
+                    "generate": true,
+                    "length": 32
+                },
+                "POSTGRES_DB": "superset",
+                "DATABASE_URL": "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${RAILWAY_TCP_PROXY_DOMAIN}:${RAILWAY_TCP_PROXY_PORT}/${POSTGRES_DB}"
+            }
+        },
+        "redis": {
+            "name": "Redis Cache",
+            "source": {
+                "image": "redis:7"
+            },
+            "env": {
+                "REDIS_URL": "redis://${RAILWAY_TCP_PROXY_DOMAIN}:${RAILWAY_TCP_PROXY_PORT}"
+            }
+        }
+    }
+}

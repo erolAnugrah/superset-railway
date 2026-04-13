@@ -41,6 +41,7 @@ FEATURE_FLAGS = {
 
 WTF_CSRF_ENABLED = False
 TALISMAN_ENABLED = False
+CONTENT_SECURITY_POLICY_WARNING = False
 
 GUEST_ROLE_NAME = "Gamma"  
 GUEST_TOKEN_JWT_SECRET = "s02Z2TVgsh0aBqob0bpXxTUr5UF3X80dXUXmSMVNRSuyrowit2Ivv-VHNRbNxDl1waP28Ecm7PygWLNHayY_JQ"
@@ -74,6 +75,8 @@ from celery.schedules import crontab
 
 # Railway usually provides REDIS_URL for its Redis plugins
 _redis_url = os.environ.get("REDIS_URL", "redis://redis:6379/0")
+
+RATELIMIT_STORAGE_URI = _redis_url
 
 CACHE_CONFIG = {
     "CACHE_TYPE": "RedisCache",

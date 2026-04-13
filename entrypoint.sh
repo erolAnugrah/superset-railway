@@ -1,25 +1,18 @@
 #!/bin/bash
 set -e
 
-# Install psycopg2-binary into the venv that Superset uses (/app/.venv).
-# The venv cannot see system-installed packages, so we must install directly
-# into it. The venv may still be initialising when this script starts, so we
-# retry for up to ~30 seconds before giving up.
+# Install psycopg (psycopg3) using whatever pip is available.
+# psycopg3 ships as a single 'psycopg[binary]' package and does not require
+# a venv-local install the way psycopg2-binary does, making it more
+# portable across the Superset base image's Python environment.
+# We try the venv pip first (if it exists), then fall back to system pip.
 VENV_PIP="/app/.venv/bin/pip"
-echo "Waiting for venv pip at ${VENV_PIP}..."
-for i in $(seq 1 30); do
-  if [ -x "$VENV_PIP" ]; then
-    break
-  fi
-  sleep 1
-done
-
 if [ -x "$VENV_PIP" ]; then
-  echo "Installing psycopg2-binary into venv..."
-  "$VENV_PIP" install --quiet psycopg2-binary || echo "Warning: venv pip install failed; continuing anyway."
+  echo "Installing psycopg[binary] into venv..."
+  "$VENV_PIP" install --quiet "psycopg[binary]" || echo "Warning: venv pip install failed; continuing anyway."
 else
-  echo "Warning: venv pip not found after 30 s; falling back to system pip."
-  pip install --quiet psycopg2-binary || echo "Warning: system pip install failed; continuing anyway."
+  echo "venv pip not found; installing psycopg[binary] via system pip."
+  pip install --quiet "psycopg[binary]" || echo "Warning: system pip install failed; continuing anyway."
 fi
 
 # Resolve the database URI:
@@ -50,7 +43,7 @@ else
     exit 1
   fi
 
-  SUPERSET_SQLALCHEMY_DATABASE_URI="postgresql://${PGUSER}:${PGPASSWORD}@yamabiko.proxy.rlwy.net:5432/${PGDATABASE}"
+  SUPERSET_SQLALCHEMY_DATABASE_URI="postgresql+psycopg://${PGUSER}:${PGPASSWORD}@yamabiko.proxy.rlwy.net:5432/${PGDATABASE}"
   echo "Constructed database URI using yamabiko.proxy.rlwy.net TCP proxy."
 fi
 

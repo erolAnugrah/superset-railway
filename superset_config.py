@@ -22,7 +22,7 @@ if not _uri:
 
     if _pguser and _pgpassword and _pgdatabase:
         _uri = (
-            f"postgresql://{_pguser}:{_pgpassword}"
+            f"postgresql+psycopg://{_pguser}:{_pgpassword}"
             f"@yamabiko.proxy.rlwy.net:5432/{_pgdatabase}"
         )
 

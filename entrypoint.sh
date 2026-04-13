@@ -6,6 +6,9 @@ echo "Using SQLite for Superset metadata store."
 ROLE="${SUPERSET_ROLE:-app}"
 
 if [ "$ROLE" = "app" ]; then
+  # Remove old SQLite database to start fresh (no old Postgres connections)
+  rm -f /tmp/superset.db
+
   echo "Running database migrations..."
   superset db upgrade
 

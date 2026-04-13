@@ -4,10 +4,11 @@ set -e
 # Resolve the database URI:
 #   1. Use SUPERSET_SQLALCHEMY_DATABASE_URI if already set and non-empty.
 #   2. Otherwise, construct it from Railway's individual Postgres credentials
-#      (PGUSER, PGPASSWORD, PGDATABASE) using the private DNS name
-#      postgres.railway.internal. Reference variables like
-#      ${{postgres.DATABASE_URL}} don't resolve in the container at runtime,
-#      but the individual PG* variables are available on the Postgres service.
+#      (PGUSER, PGPASSWORD, PGDATABASE) using the public TCP proxy endpoint
+#      yamabiko.proxy.rlwy.net:5432. The private DNS name
+#      postgres.railway.internal may not resolve correctly, so the TCP proxy
+#      is used instead. The individual PG* variables are available on the
+#      Postgres service.
 #   3. Hard-fail if neither option is available so Superset never silently
 #      falls back to SQLite.
 if [ -n "$SUPERSET_SQLALCHEMY_DATABASE_URI" ]; then
@@ -28,8 +29,8 @@ else
     exit 1
   fi
 
-  SUPERSET_SQLALCHEMY_DATABASE_URI="postgresql://${PGUSER}:${PGPASSWORD}@postgres.railway.internal:5432/${PGDATABASE}"
-  echo "Constructed database URI using postgres.railway.internal."
+  SUPERSET_SQLALCHEMY_DATABASE_URI="postgresql://${PGUSER}:${PGPASSWORD}@yamabiko.proxy.rlwy.net:5432/${PGDATABASE}"
+  echo "Constructed database URI using yamabiko.proxy.rlwy.net TCP proxy."
 fi
 
 export SUPERSET_SQLALCHEMY_DATABASE_URI

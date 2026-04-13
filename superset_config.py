@@ -32,6 +32,8 @@ if _uri:
 # ---------------------------------------------------------
 # Production settings replicated from alchemist-prod
 # ---------------------------------------------------------
+SECRET_KEY = 'TmV3U2VjcmV0S2V5Rm9yU3VwZXJzZXRQbGVhc2VHZW5lcmF0ZUEgU3Ryb25nUmFuZG9tS2V5'
+
 FEATURE_FLAGS = {
     "ENABLE_TEMPLATE_PROCESSING": True,
     "EMBEDDED_SUPERSET": True,

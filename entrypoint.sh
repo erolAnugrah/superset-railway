@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+export SUPERSET_SQLALCHEMY_DATABASE_URI
+
 # Initialize Superset database
 superset db upgrade
 

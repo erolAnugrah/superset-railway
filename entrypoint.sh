@@ -1,6 +1,14 @@
 #!/bin/bash
 set -e
 
+# Install psycopg2-binary into the venv if not already present.
+# The venv is created by the base image at runtime, so this must happen here
+# rather than during the Docker build.
+if ! /app/.venv/bin/python -c "import psycopg2" 2>/dev/null; then
+  echo "Installing psycopg2-binary into venv..."
+  /app/.venv/bin/pip install --quiet psycopg2-binary
+fi
+
 # Resolve the database URI:
 #   1. Use SUPERSET_SQLALCHEMY_DATABASE_URI if already set and non-empty.
 #   2. Otherwise, construct it from Railway's individual Postgres credentials

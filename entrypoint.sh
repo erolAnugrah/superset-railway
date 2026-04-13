@@ -3,21 +3,20 @@ set -e
 
 # Resolve the database URI:
 #   1. Use SUPERSET_SQLALCHEMY_DATABASE_URI if already set and non-empty.
-#   2. Otherwise, construct it from individual Postgres variables that
-#      Railway's auto-provisioned Postgres service exposes: PGHOST, PGUSER,
-#      PGPORT, PGPASSWORD, PGDATABASE.
+#   2. Otherwise, use the DATABASE variable that Railway provides directly
+#      (reference variables like ${{ Postgres.PGHOST }} don't resolve in the
+#      container at runtime, but DATABASE is a plain variable set to the full
+#      Postgres connection string).
 #   3. Hard-fail if neither option is available so Superset never silently
 #      falls back to SQLite.
 if [ -n "$SUPERSET_SQLALCHEMY_DATABASE_URI" ]; then
   echo "Using SUPERSET_SQLALCHEMY_DATABASE_URI for database connection."
-elif [ -n "$PGHOST" ] && [ -n "$PGUSER" ] && [ -n "$PGPORT" ] && [ -n "$PGPASSWORD" ] && [ -n "$PGDATABASE" ]; then
-  echo "SUPERSET_SQLALCHEMY_DATABASE_URI is not set; constructing from PG* variables."
-  SUPERSET_SQLALCHEMY_DATABASE_URI="postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}:${PGPORT}/${PGDATABASE}"
-  echo "Database URI constructed from PG* variables (password redacted): postgresql://${PGUSER}:***@${PGHOST}:${PGPORT}/${PGDATABASE}"
+elif [ -n "$DATABASE" ]; then
+  echo "SUPERSET_SQLALCHEMY_DATABASE_URI is not set; using DATABASE variable."
+  SUPERSET_SQLALCHEMY_DATABASE_URI="$DATABASE"
 else
-  echo "ERROR: SUPERSET_SQLALCHEMY_DATABASE_URI is not set and one or more of" \
-       "PGHOST, PGUSER, PGPORT, PGPASSWORD, PGDATABASE are missing." \
-       "Please link a Postgres service or set SUPERSET_SQLALCHEMY_DATABASE_URI in Railway." >&2
+  echo "ERROR: Neither SUPERSET_SQLALCHEMY_DATABASE_URI nor DATABASE is set." \
+       "Please set the DATABASE variable to the Postgres connection string in Railway." >&2
   exit 1
 fi
 

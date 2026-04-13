@@ -1,19 +1,15 @@
 #!/bin/bash
 set -e
 
-# Install psycopg (psycopg3) using whatever pip is available.
-# psycopg3 ships as a single 'psycopg[binary]' package and does not require
-# a venv-local install the way psycopg2-binary does, making it more
-# portable across the Superset base image's Python environment.
-# We try the venv pip first (if it exists), then fall back to system pip.
-VENV_PIP="/app/.venv/bin/pip"
-if [ -x "$VENV_PIP" ]; then
-  echo "Installing psycopg[binary] into venv..."
-  "$VENV_PIP" install --quiet "psycopg[binary]" || echo "Warning: venv pip install failed; continuing anyway."
-else
-  echo "venv pip not found; installing psycopg[binary] via system pip."
-  pip install --quiet "psycopg[binary]" || echo "Warning: system pip install failed; continuing anyway."
-fi
+# Install psycopg[binary] directly into the venv's site-packages directory.
+# The venv is created with isolation enabled, so system pip installs land in
+# /usr/local/lib/python3.10/site-packages and are invisible to the venv.
+# Using --target with the venv's site-packages path bypasses that isolation
+# and ensures the package is importable by Superset at runtime.
+VENV_SITE_PACKAGES="/app/.venv/lib/python3.10/site-packages"
+echo "Installing psycopg[binary] directly into venv site-packages (${VENV_SITE_PACKAGES})..."
+pip install --quiet --target "$VENV_SITE_PACKAGES" "psycopg[binary]" \
+  || echo "Warning: psycopg[binary] install failed; continuing anyway."
 
 # Resolve the database URI:
 #   1. Use SUPERSET_SQLALCHEMY_DATABASE_URI if already set and non-empty.

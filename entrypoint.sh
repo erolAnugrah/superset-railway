@@ -1,13 +1,21 @@
 #!/bin/bash
 set -e
 
-# Ensure SUPERSET_SQLALCHEMY_DATABASE_URI is set (provided by Railway)
-if [ -z "$SUPERSET_SQLALCHEMY_DATABASE_URI" ]; then
-  echo "ERROR: SUPERSET_SQLALCHEMY_DATABASE_URI is not set. Please configure it in Railway." >&2
+# Resolve the database URI: prefer SUPERSET_SQLALCHEMY_DATABASE_URI, fall back
+# to DATABASE (Railway's auto-provisioned Postgres URL), and hard-fail if
+# neither is available so Superset never silently falls back to SQLite.
+if [ -n "$SUPERSET_SQLALCHEMY_DATABASE_URI" ]; then
+  echo "Using SUPERSET_SQLALCHEMY_DATABASE_URI for database connection."
+elif [ -n "$DATABASE" ]; then
+  echo "SUPERSET_SQLALCHEMY_DATABASE_URI is empty; falling back to DATABASE variable."
+  SUPERSET_SQLALCHEMY_DATABASE_URI="$DATABASE"
+else
+  echo "ERROR: Neither SUPERSET_SQLALCHEMY_DATABASE_URI nor DATABASE is set." \
+       "Please configure a Postgres connection string in Railway." >&2
   exit 1
 fi
 
-export SUPERSET_SQLALCHEMY_DATABASE_URI="$SUPERSET_SQLALCHEMY_DATABASE_URI"
+export SUPERSET_SQLALCHEMY_DATABASE_URI
 
 echo "Running database migrations..."
 superset db upgrade

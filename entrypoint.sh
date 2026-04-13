@@ -1,16 +1,6 @@
 #!/bin/bash
 set -e
 
-# Install psycopg[binary] directly into the venv's site-packages directory.
-# The venv is created with isolation enabled, so system pip installs land in
-# /usr/local/lib/python3.10/site-packages and are invisible to the venv.
-# Using --target with the venv's site-packages path bypasses that isolation
-# and ensures the package is importable by Superset at runtime.
-VENV_SITE_PACKAGES="/app/.venv/lib/python3.10/site-packages"
-echo "Installing psycopg[binary] directly into venv site-packages (${VENV_SITE_PACKAGES})..."
-pip install --quiet --target "$VENV_SITE_PACKAGES" "psycopg[binary]" \
-  || echo "Warning: psycopg[binary] install failed; continuing anyway."
-
 # Resolve the database URI:
 #   1. Use SUPERSET_SQLALCHEMY_DATABASE_URI if already set and non-empty.
 #   2. Otherwise, construct it from Railway's individual Postgres credentials

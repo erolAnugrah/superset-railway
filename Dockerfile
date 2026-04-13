@@ -1,6 +1,7 @@
 FROM apache/superset:latest
 
 USER root
+RUN /app/.venv/bin/pip install "psycopg[binary]"
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

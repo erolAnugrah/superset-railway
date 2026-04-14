@@ -73,12 +73,12 @@ CORS_OPTIONS = {
 # ---------------------------------------------------------
 from celery.schedules import crontab
 
-# Railway usually provides REDIS_URL for its Redis plugins
-_redis_url = os.environ.get("REDIS_URL", "redis://redis:6379/0")
+# Railway usually provides REDIS_URL for its Redis plugins (e.g. redis://default:password@...)
+# We replace "default:" with ":" because some Redis clients/servers (and flask_limiter)
+# fail to authenticate when the username is explicitly passed as "default".
+_redis_url = os.environ.get("REDIS_URL", "redis://redis:6379/0").replace("redis://default:", "redis://:")
 
-# Flask-limiter (limits package) has trouble parsing "redis://default:password" sometimes, 
-# so we replace "default:" with ":" to pass only the password.
-RATELIMIT_STORAGE_URI = _redis_url.replace("redis://default:", "redis://:")
+RATELIMIT_STORAGE_URI = _redis_url
 
 CACHE_CONFIG = {
     "CACHE_TYPE": "RedisCache",
